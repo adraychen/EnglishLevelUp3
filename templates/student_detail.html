@@ -6,41 +6,84 @@
   </a>
 </div>
 
-<h2 style="margin-bottom:24px;">{{ student.name }}</h2>
+<h2 style="margin-bottom:24px;">{{ student.name }}'s Dashboard</h2>
 
-{% if report %}
-<div class="card">
-  <div class="card-title">📊 Latest progress report
-    <span style="font-size:13px;font-weight:400;color:#6c757d;">
-      (Sessions {{ report.sessions_from }}–{{ report.sessions_to }})
-    </span>
-  </div>
-  {% set categories = [
-    ('Vocabulary', report.vocabulary_score, report.vocabulary_label, report.vocabulary_description),
-    ('Phrasing',   report.phrasing_score,   report.phrasing_label,   report.phrasing_description),
-    ('Structure',  report.structure_score,  report.structure_label,  report.structure_description),
-  ] %}
-  {% for name, score, label, desc in categories %}
-  <div style="margin-bottom:16px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <span style="font-weight:500;font-size:14px;">{{ name }}</span>
-      <span class="score-badge badge-{{ label.lower() }}">{{ label }}</span>
-      <span style="font-size:13px;color:#6c757d;">{{ score }}/10</span>
+<!-- SECTION 1: Progress report with Previous/Next navigation -->
+{% if reports %}
+<div class="card" id="report-section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div class="card-title" style="margin-bottom:0;">
+      📊 Progress report
+      <span id="report-sessions" style="font-size:13px;font-weight:400;color:#6c757d;"></span>
     </div>
-    <p style="font-size:13px;color:#495057;line-height:1.6;">{{ desc }}</p>
-  </div>
-  {% endfor %}
-  <div style="border-top:1px solid #e9ecef;padding-top:16px;margin-top:8px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-      <span style="font-weight:600;font-size:14px;">Overall</span>
-      <span class="score-badge badge-{{ report.overall_label.lower() }}">{{ report.overall_label }}</span>
-      <span style="font-size:13px;color:#6c757d;">{{ report.overall_score }}/10</span>
+    <div style="display:flex;gap:8px;">
+      <button id="prev-btn" onclick="prevReport()" class="btn" style="padding:4px 12px;font-size:13px;">← Previous</button>
+      <button id="next-btn" onclick="nextReport()" class="btn" style="padding:4px 12px;font-size:13px;">Next →</button>
     </div>
-    <p style="font-size:13px;color:#495057;line-height:1.6;">{{ report.improvement_description }}</p>
   </div>
+
+  <div id="report-categories"></div>
+
+  <div id="report-overall" style="border-top:1px solid #e9ecef;padding-top:16px;margin-top:8px;"></div>
+</div>
+{% else %}
+<div class="card" style="color:#6c757d;font-size:14px;">
+  Progress report will be generated after 5 sessions.
 </div>
 {% endif %}
 
+<!-- SECTION 2: Progress history table -->
+{% if reports %}
+<div class="card">
+  <div class="card-title">📈 Progress history</div>
+  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+    <thead>
+      <tr style="border-bottom:1px solid #e9ecef;color:#6c757d;">
+        <th style="text-align:left;padding:8px 0;">Report</th>
+        <th style="text-align:left;padding:8px 0;">Sessions</th>
+        <th style="text-align:left;padding:8px 0;">Vocabulary</th>
+        <th style="text-align:left;padding:8px 0;">Phrasing</th>
+        <th style="text-align:left;padding:8px 0;">Structure</th>
+        <th style="text-align:left;padding:8px 0;">Overall</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in reports %}
+      <tr style="border-bottom:1px solid #f1f3f5;">
+        <td style="padding:10px 0;color:#6c757d;">{{ r.report_number }}</td>
+        <td style="padding:10px 0;color:#6c757d;">{{ r.sessions_from }}–{{ r.sessions_to }}</td>
+        <td style="padding:10px 0;">
+          <span class="score-badge badge-{{ score_to_label(r.vocabulary_score or 5).lower() }}">
+            {{ score_to_label(r.vocabulary_score or 5) }}
+          </span>
+          <span style="font-size:12px;color:#6c757d;margin-left:4px;">{{ r.vocabulary_score }}/10</span>
+        </td>
+        <td style="padding:10px 0;">
+          <span class="score-badge badge-{{ score_to_label(r.phrasing_score or 5).lower() }}">
+            {{ score_to_label(r.phrasing_score or 5) }}
+          </span>
+          <span style="font-size:12px;color:#6c757d;margin-left:4px;">{{ r.phrasing_score }}/10</span>
+        </td>
+        <td style="padding:10px 0;">
+          <span class="score-badge badge-{{ score_to_label(r.structure_score or 5).lower() }}">
+            {{ score_to_label(r.structure_score or 5) }}
+          </span>
+          <span style="font-size:12px;color:#6c757d;margin-left:4px;">{{ r.structure_score }}/10</span>
+        </td>
+        <td style="padding:10px 0;">
+          <span class="score-badge badge-{{ score_to_label(r.overall_score or 5).lower() }}">
+            {{ score_to_label(r.overall_score or 5) }}
+          </span>
+          <span style="font-size:12px;color:#6c757d;margin-left:4px;">{{ r.overall_score }}/10</span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- SECTION 3: Session history table -->
 <div class="card">
   <div class="card-title">📝 Session history</div>
   {% if sessions %}
@@ -65,6 +108,9 @@
             <span class="score-badge badge-{{ score_to_label(s.analysis.overall_score).lower() }}">
               {{ score_to_label(s.analysis.overall_score) }}
             </span>
+            <span style="font-size:12px;color:#6c757d;margin-left:4px;">
+              {{ s.analysis.overall_score }}/10
+            </span>
           {% else %}—{% endif %}
         </td>
         <td style="padding:10px 0;font-size:12px;color:#6c757d;max-width:240px;">
@@ -78,4 +124,60 @@
   <p style="color:#6c757d;font-size:14px;">No sessions yet.</p>
   {% endif %}
 </div>
+
+{% if reports %}
+<script>
+const reports = {{ reports_json | tojson | safe }};
+let currentIndex = reports.length - 1;
+
+function renderReport(index) {
+  const r = reports[index];
+
+  document.getElementById('report-sessions').textContent = `(Sessions ${r.sessions_from}–${r.sessions_to})`;
+
+  const categories = [
+    { name: 'Vocabulary', score: r.vocabulary_score, label: r.vocabulary_label, desc: r.vocabulary_description },
+    { name: 'Phrasing', score: r.phrasing_score, label: r.phrasing_label, desc: r.phrasing_description },
+    { name: 'Structure', score: r.structure_score, label: r.structure_label, desc: r.structure_description },
+  ];
+
+  let categoriesHtml = '';
+  categories.forEach(cat => {
+    categoriesHtml += `
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <span style="font-weight:500;font-size:14px;">${cat.name}</span>
+          <span class="score-badge badge-${cat.label.toLowerCase()}">${cat.label}</span>
+          <span style="font-size:13px;color:#6c757d;">${cat.score}/10</span>
+        </div>
+        <p style="font-size:13px;color:#495057;line-height:1.6;">${cat.desc || ''}</p>
+      </div>
+    `;
+  });
+  document.getElementById('report-categories').innerHTML = categoriesHtml;
+
+  document.getElementById('report-overall').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <span style="font-weight:600;font-size:14px;">Overall</span>
+      <span class="score-badge badge-${r.overall_label.toLowerCase()}">${r.overall_label}</span>
+      <span style="font-size:13px;color:#6c757d;">${r.overall_score}/10</span>
+    </div>
+    <p style="font-size:13px;color:#495057;line-height:1.6;">${r.improvement_description || ''}</p>
+  `;
+
+  document.getElementById('prev-btn').style.visibility = index > 0 ? 'visible' : 'hidden';
+  document.getElementById('next-btn').style.visibility = index < reports.length - 1 ? 'visible' : 'hidden';
+}
+
+function prevReport() {
+  if (currentIndex > 0) { currentIndex--; renderReport(currentIndex); }
+}
+
+function nextReport() {
+  if (currentIndex < reports.length - 1) { currentIndex++; renderReport(currentIndex); }
+}
+
+renderReport(currentIndex);
+</script>
+{% endif %}
 {% endblock %}

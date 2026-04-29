@@ -14,14 +14,18 @@
         <th style="text-align:left;padding:8px 0;">Vocabulary</th>
         <th style="text-align:left;padding:8px 0;">Phrasing</th>
         <th style="text-align:left;padding:8px 0;">Structure</th>
-        <th style="text-align:left;padding:8px 0;"></th>
       </tr>
     </thead>
     <tbody>
       {% for student in students %}
       {% set report = student.reports[-1] if student.reports else None %}
       <tr style="border-bottom:1px solid #f1f3f5;">
-        <td style="padding:10px 0;font-weight:500;">{{ student.name }}</td>
+        <td style="padding:10px 0;font-weight:500;">
+          <a href="{{ url_for('student_detail', student_id=student.id) }}"
+             style="color:#0d6efd;text-decoration:none;">
+            {{ student.name }}
+          </a>
+        </td>
         <td style="padding:10px 0;color:#6c757d;">{{ student.sessions|length }}</td>
         <td style="padding:10px 0;">
           {% if report %}
@@ -50,10 +54,6 @@
               {{ report.structure_label }}
             </span>
           {% else %}—{% endif %}
-        </td>
-        <td style="padding:10px 0;">
-          <a href="{{ url_for('student_detail', student_id=student.id) }}"
-             style="font-size:13px;color:#0d6efd;text-decoration:none;">View →</a>
         </td>
       </tr>
       {% endfor %}

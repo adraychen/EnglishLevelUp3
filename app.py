@@ -183,13 +183,31 @@ def dashboard():
                     .filter_by(user_id=current_user.id)
                     .order_by(DBSession.date.desc())
                     .all())
-        latest_report = (ProgressReport.query
-                         .filter_by(user_id=current_user.id)
-                         .order_by(ProgressReport.report_number.desc())
-                         .first())
+        reports = (ProgressReport.query
+                   .filter_by(user_id=current_user.id)
+                   .order_by(ProgressReport.report_number.asc())
+                   .all())
+        reports_json = [{
+            "report_number": r.report_number,
+            "sessions_from": r.sessions_from,
+            "sessions_to": r.sessions_to,
+            "vocabulary_score": r.vocabulary_score,
+            "vocabulary_label": score_to_label(r.vocabulary_score or 5),
+            "vocabulary_description": r.vocabulary_description,
+            "phrasing_score": r.phrasing_score,
+            "phrasing_label": score_to_label(r.phrasing_score or 5),
+            "phrasing_description": r.phrasing_description,
+            "structure_score": r.structure_score,
+            "structure_label": score_to_label(r.structure_score or 5),
+            "structure_description": r.structure_description,
+            "overall_score": r.overall_score,
+            "overall_label": score_to_label(r.overall_score or 5),
+            "improvement_description": r.improvement_description,
+        } for r in reports]
         return render_template("student_dashboard.html",
                                sessions=sessions,
-                               report=latest_report,
+                               reports=reports,
+                               reports_json=reports_json,
                                score_to_label=score_to_label)
 
 @app.route("/student/<int:student_id>")
@@ -202,14 +220,32 @@ def student_detail(student_id):
                 .filter_by(user_id=student_id)
                 .order_by(DBSession.date.desc())
                 .all())
-    latest_report = (ProgressReport.query
-                     .filter_by(user_id=student_id)
-                     .order_by(ProgressReport.report_number.desc())
-                     .first())
+    reports = (ProgressReport.query
+               .filter_by(user_id=student_id)
+               .order_by(ProgressReport.report_number.asc())
+               .all())
+    reports_json = [{
+        "report_number": r.report_number,
+        "sessions_from": r.sessions_from,
+        "sessions_to": r.sessions_to,
+        "vocabulary_score": r.vocabulary_score,
+        "vocabulary_label": score_to_label(r.vocabulary_score or 5),
+        "vocabulary_description": r.vocabulary_description,
+        "phrasing_score": r.phrasing_score,
+        "phrasing_label": score_to_label(r.phrasing_score or 5),
+        "phrasing_description": r.phrasing_description,
+        "structure_score": r.structure_score,
+        "structure_label": score_to_label(r.structure_score or 5),
+        "structure_description": r.structure_description,
+        "overall_score": r.overall_score,
+        "overall_label": score_to_label(r.overall_score or 5),
+        "improvement_description": r.improvement_description,
+    } for r in reports]
     return render_template("student_detail.html",
                            student=student,
                            sessions=sessions,
-                           report=latest_report,
+                           reports=reports,
+                           reports_json=reports_json,
                            score_to_label=score_to_label)
 
 # ── Routes: Conversation ──────────────────────────────────────────────────────
